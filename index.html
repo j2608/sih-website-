@@ -1,5 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE        :root {
+            --primary: #E6D7C3;            filter: brightness(0.75) contrast(1.2) hue-rotate(0deg);
+            --primary-dark: #00cc6a;
+            --secondary: #F0F0F0;
+            --dark: #0a0a0a;
+            --light: #ffffff;
+            --gray: #888888;
+            --transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,7 +15,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #FFFFFF;
+            --primary: #B0E0E6;
             --primary-dark: #00cc6a;
             --secondary: #F0F0F0;
             --dark: #0a0a0a;
@@ -48,7 +55,7 @@
             height: 100%;
             object-fit: cover;
             z-index: -1;
-            filter: brightness(0.8) contrast(1.4) saturate(2.0) hue-rotate(180deg);
+            filter: brightness(0.8) contrast(1.2) hue-rotate(0deg);
             mix-blend-mode: screen;
             opacity: 0.9;
         }
@@ -169,13 +176,13 @@
             font-weight: 800;
             margin-bottom: 24px;
             line-height: 1.1;
-            color: #ffffff;
+            color: #00BFA5;
         }
 
         .hero p {
             font-size: 20px;
             margin-bottom: 40px;
-            color: #ffffff;
+            color: #B0BEC5;
             text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
             line-height: 1.6;
         }
@@ -218,13 +225,11 @@
             font-size: 52px;
             font-weight: 800;
             margin-bottom: 20px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: #00BFA5;
         }
 
         .section-header p {
-            color: #FFFFFF;
+            color: #B0BEC5;
             font-size: 18px;
         }
 
@@ -284,11 +289,11 @@
             font-size: 24px;
             font-weight: 700;
             margin-bottom: 20px;
-            color: #FFFFFF;
+            color: #00BFA5;
         }
 
         .feature-card p {
-            color: #F0F0F0;
+            color: #B0BEC5;
             line-height: 1.6;
         }
 
@@ -313,14 +318,12 @@
             font-size: 64px;
             font-weight: 800;
             margin-bottom: 10px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: #4ECDC4;
         }
 
         .stat-label {
             font-size: 18px;
-            color: #FFFFFF;
+            color: #B0BEC5;
             text-transform: uppercase;
             letter-spacing: 2px;
         }
@@ -337,16 +340,14 @@
             font-size: 56px;
             font-weight: 800;
             margin-bottom: 30px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: #00BFA5;
         }
 
         .cta-section p {
             font-size: 20px;
             max-width: 600px;
             margin: 0 auto 50px;
-            color: var(--gray);
+            color: #B0BEC5;
         }
 
         .cta-buttons {
@@ -547,7 +548,7 @@
                     <li><a href="#about">About</a></li>
                 </ul>
                 <div class="nav-right">
-                    <button class="cta-button">Get Started</button>
+                    <button class="cta-button" onclick="window.location.href='signup.html'">Get Started</button>
                     <div class="mobile-menu">
                         <i class="fas fa-bars"></i>
                     </div>
@@ -563,8 +564,8 @@
                 <h1 class="glow">SECURE YOUR DIGITAL FUTURE</h1>
                 <p>Advanced cybersecurity solutions powered by AI and machine learning to protect your business from evolving threats in the digital landscape.</p>
                 <div class="hero-buttons">
-                    <button class="cta-button">Start Free Trial</button>
-                    <button class="btn-secondary">View Demo</button>
+                    <button class="cta-button" onclick="window.location.href='signup.html'">Get Started</button>
+                    <button class="btn-secondary" onclick="window.location.href='login.html'">Sign In</button>
                 </div>
             </div>
         </div>
@@ -654,8 +655,8 @@
             <h2>Ready to Secure Your Business?</h2>
             <p>Join thousands of companies that trust VNC Kavach to protect their digital assets from evolving cyber threats.</p>
             <div class="cta-buttons">
-                <button class="cta-button">Start Free Trial</button>
-                <button class="btn-secondary">Contact Sales</button>
+                <button class="cta-button" onclick="window.location.href='signup.html'">Start Free Trial</button>
+                <button class="btn-secondary" onclick="window.location.href='login.html'">Contact Sales</button>
             </div>
         </div>
     </section>
