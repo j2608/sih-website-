@@ -1388,12 +1388,95 @@
             window.location.href = 'login.html';
         }
 
-        // Export report function
+        // Export helpers (shared)
+        function downloadFile(filename, content, mime = 'application/json') {
+            const blob = new Blob([content], { type: mime + ';charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        }
+
+        function toCSV(rows, columns) {
+            const esc = v => '"' + String(v ?? '').replace(/"/g, '""') + '"';
+            const header = columns.map(c => esc(c)).join(',');
+            const body = rows.map(r => columns.map(c => esc(r[c])).join(',')).join('\n');
+            return header + '\n' + body;
+        }
+
+        function collectAnalyticsData() {
+            const timeRange = document.getElementById('timeRange')?.value || '';
+            const totalThreats = document.getElementById('totalThreats')?.textContent?.trim() || '';
+            const blockedThreats = document.getElementById('blockedThreats')?.textContent?.trim() || '';
+            const escalatedThreats = document.getElementById('escalatedThreats')?.textContent?.trim() || '';
+
+            const vectors = Array.from(document.querySelectorAll('.vector-item')).map(el => ({
+                name: el.querySelector('.vector-name')?.textContent?.trim() || '',
+                count: el.querySelector('.vector-count')?.textContent?.trim() || '',
+                pct: el.querySelector('.vector-fill')?.style.width || ''
+            }));
+
+            const geos = Array.from(document.querySelectorAll('.geo-item')).map(el => ({
+                flag: el.querySelector('.geo-flag')?.textContent?.trim() || '',
+                name: el.querySelector('.geo-name')?.textContent?.trim() || '',
+                count: el.querySelector('.geo-count')?.textContent?.trim() || ''
+            }));
+
+            const responseMetrics = Array.from(document.querySelectorAll('.response-metric')).map(el => ({
+                value: el.querySelector('.response-value')?.textContent?.trim() || '',
+                label: el.querySelector('.response-label')?.textContent?.trim() || ''
+            }));
+
+            const trends = Array.from(document.querySelectorAll('.trend-chart-placeholder .chart-bar')).map((el, i) => ({
+                label: el.querySelector('.chart-label')?.textContent?.trim() || ('T' + (i+1)),
+                value: el.getAttribute('data-value') || el.getAttribute('title') || ''
+            }));
+
+            const vulnerabilities = Array.from(document.querySelectorAll('.vulnerability-item')).map(el => ({
+                name: el.querySelector('.vulnerability-name')?.textContent?.trim() || '',
+                count: el.querySelector('.vulnerability-count')?.textContent?.trim() || ''
+            }));
+
+            const securityScore = document.querySelector('.security-score-number')?.textContent?.trim() || '';
+
+            const compliance = Array.from(document.querySelectorAll('.compliance-item')).map(el => ({
+                name: el.querySelector('.compliance-name')?.textContent?.trim() || '',
+                status: el.querySelector('.compliance-status')?.textContent?.trim() || ''
+            }));
+
+            return { timeRange, totalThreats, blockedThreats, escalatedThreats, vectors, geos, responseMetrics, trends, vulnerabilities, securityScore, compliance };
+        }
+
+        // Replace exportReport with a working exporter
         function exportReport() {
-            showToast('Generating analytics report...', 'info');
-            setTimeout(() => {
-                showToast('Analytics report exported successfully!', 'success');
-            }, 2000);
+            try {
+                showToast('Preparing analytics export...', 'info');
+                const data = collectAnalyticsData();
+                const payload = { exportedAt: new Date().toISOString(), analytics: data };
+                const json = JSON.stringify(payload, null, 2);
+                // download JSON
+                downloadFile('analytics-report-' + (data.timeRange || 'report') + '.json', json, 'application/json');
+                // create a summary CSV (vectors + geos flattened)
+                const rows = [];
+                // vectors
+                data.vectors.forEach(v => rows.push({ section: 'vector', name: v.name, value: v.count, extra: v.pct }));
+                // geos
+                data.geos.forEach(g => rows.push({ section: 'geo', name: g.name, value: g.count, extra: g.flag }));
+                // vulnerabilities
+                data.vulnerabilities.forEach(vu => rows.push({ section: 'vulnerability', name: vu.name, value: vu.count, extra: '' }));
+                const csv = toCSV(rows, ['section', 'name', 'value', 'extra']);
+                downloadFile('analytics-summary-' + (data.timeRange || 'report') + '.csv', csv, 'text/csv');
+                // copy JSON to clipboard when possible
+                if (navigator.clipboard) navigator.clipboard.writeText(json).catch(()=>{});
+                showToast('Analytics exported (JSON + CSV) and JSON copied to clipboard', 'success');
+            } catch (e) {
+                console.error(e);
+                showToast('Failed to export analytics: ' + e.message, 'warning');
+            }
         }
 
         // Time range change handler
