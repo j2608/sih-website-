@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VNC KAVACH - Advanced Security Solutions</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style id="dashboard-theme">
+        :root {
+            --primary: #00BFA5;
+            --primary-dark: #00cc6a;
+            --secondary: #F0F0F0;
+            --dark: #0a0a0a;
+            --light: #ffffff;
+            --gray: #888888;
+            --success: #00FF00;
+            --warning: #FFFF00;
+            --danger: #FF0000;
+            --info: #00FFFF;
+            --transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+            --bg-primary: rgba(255, 255, 255, 0.05);
+            --bg-secondary: rgba(255, 255, 255, 0.08);
+            --text-primary: #FFFFFF;
+            --text-secondary: #F0F0F0;
+            --text-muted: #888888;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --accent-color: #00BFA5;
+            --accent-hover: #00cc6a;
+        }
+
+        body { background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%); color: var(--text-primary); }
+        body::before { content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: radial-gradient(circle at 25% 25%, rgba(0, 191, 165, 0.03) 0%, transparent 50%), radial-gradient(circle at 75% 75%, rgba(0, 191, 165, 0.03) 0%, transparent 50%); pointer-events: none; z-index: -1; }
+    </style>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #00d4ff;
+            --secondary: #0066cc;
+            --accent: #ff3366;
+            --dark: #0a0a0a;
+            --darker: #050505;
+            --light: #ffffff;
+            --gray: #888888;
+            --border: #1a1a1a;
+            --card-bg: #111111;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 50%, var(--darker) 100%);
+            background-attachment: fixed;
+            color: var(--light);
+            overflow-x: hidden;
+        }
+
+        /* Header Styles */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            transition: 0.5s;
+            background: rgba(5, 5, 5, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--light);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo i {
+            color: var(--accent);
+            margin-right: 10px;
+        }
+
+        .logo span {
+            color: var(--primary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            color: var(--light);
+            text-decoration: none;
+            font-weight: 500;
+            transition: 0.3s;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--accent);
+            transition: 0.3s;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .cta-button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .cta-button:hover {
+            background: var(--accent);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(255, 109, 0, 0.3);
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 0 5%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Video Background */
+        .video-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .video-background video {
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            object-fit: cover;
+        }
+
+        .hero-content {
+            max-width: 600px;
+            z-index: 1;
+            position: relative;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+
+        .hero h1 span {
+            color: var(--primary);
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            color: var(--gray);
+            line-height: 1.6;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 20px;
+        }
+
+
+
+        /* Features Section */
+        .features {
+            padding: 100px 5%;
+            background: linear-gradient(180deg, var(--dark) 0%, var(--darker) 50%, var(--dark) 100%);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-title h2 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        .section-title p {
+            color: var(--gray);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .feature-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            padding: 30px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            backdrop-filter: blur(10px);
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            opacity: 0;
+            transition: 0.3s;
+            z-index: -1;
+        }
+
+        .feature-card:hover::before {
+            opacity: 0.05;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 212, 255, 0.2);
+            border-color: var(--primary);
+        }
+
+        .feature-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.15), rgba(255, 51, 102, 0.15));
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .feature-icon i {
+            font-size: 1.8rem;
+            color: var(--primary);
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+
+        .feature-card p {
+            color: var(--gray);
+            line-height: 1.6;
+        }
+
+        /* Security Animation */
+        .security-animation {
+            padding: 100px 5%;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            background: radial-gradient(circle at center, var(--dark) 0%, var(--darker) 100%);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .animation-container {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            height: 400px;
+        }
+
+        .shield {
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(255, 51, 102, 0.1));
+            border: 2px solid rgba(0, 212, 255, 0.3);
+            border-radius: 50%;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            animation: pulse 3s infinite;
+            backdrop-filter: blur(10px);
+        }
+
+        .shield i {
+            font-size: 5rem;
+            color: var(--primary);
+        }
+
+        .data-flow {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+        }
+
+        .data-node {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: var(--accent);
+            border-radius: 50%;
+            top: 50%;
+            transform: translateY(-50%);
+            animation: data-flow 5s infinite linear;
+        }
+
+        .data-node:nth-child(2) {
+            animation-delay: 1s;
+        }
+
+        .data-node:nth-child(3) {
+            animation-delay: 2s;
+        }
+
+        .data-node:nth-child(4) {
+            animation-delay: 3s;
+        }
+
+        .data-node:nth-child(5) {
+            animation-delay: 4s;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(0, 212, 255, 0.6);
+            }
+            70% {
+                box-shadow: 0 0 0 30px rgba(0, 212, 255, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(0, 212, 255, 0);
+            }
+        }
+
+        @keyframes data-flow {
+            0% {
+                left: 0;
+            }
+            100% {
+                left: 100%;
+            }
+        }
+
+        /* CTA Section */
+        .cta-section {
+            padding: 100px 5%;
+            text-align: center;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            position: relative;
+            overflow: hidden;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .cta-section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+
+        .cta-section p {
+            max-width: 600px;
+            margin: 0 auto 30px;
+            font-size: 1.1rem;
+        }
+
+        .cta-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+            padding: 10px 25px;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-outline:hover {
+            background: white;
+            color: var(--primary);
+        }
+
+        /* Footer */
+        footer {
+            padding: 70px 5% 30px;
+            background: linear-gradient(180deg, var(--darker) 0%, #000000 100%);
+            border-top: 1px solid var(--border);
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+            margin-bottom: 50px;
+        }
+
+        .footer-column h3 {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            position: relative;
+            padding-bottom: 10px;
+        }
+
+        .footer-column h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 40px;
+            height: 2px;
+            background: var(--accent);
+        }
+
+        .footer-column ul {
+            list-style: none;
+        }
+
+        .footer-column ul li {
+            margin-bottom: 10px;
+        }
+
+        .footer-column ul li a {
+            color: var(--gray);
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .footer-column ul li a:hover {
+            color: var(--accent);
+            padding-left: 5px;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .social-links a {
+            width: 40px;
+            height: 40px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--light);
+            transition: all 0.3s ease;
+        }
+
+        .social-links a:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .copyright {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--gray);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero-buttons, .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .hero-content {
+                text-align: center;
+            }
+
+            .video-background video {
+                width: 100%;
+                height: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            .video-background {
+                display: none;
+            }
+
+            .hero {
+                background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 50%, var(--primary) 100%);
+            }
+        }
+    </style>
+    <style id="dashboard-override">
+        body { background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%) !important; color: var(--text-primary) !important; }
+        body::before { background-image: radial-gradient(circle at 25% 25%, rgba(0, 191, 165, 0.03) 0%, transparent 50%), radial-gradient(circle at 75% 75%, rgba(0, 191, 165, 0.03) 0%, transparent 50%) !important; }
+        .sidebar-logo, .menu-item:hover, .menu-item.active, .dashboard-title, .dashboard-subtitle, .back-to-home, .security-btn.primary, .security-link, .notification-btn, .profile-btn { color: var(--accent-color) !important; }
+        .menu-item.active { border-left-color: var(--accent-color) !important; background: rgba(0,191,165,0.06) !important; }
+        .security-btn.primary { background: var(--accent-color) !important; border-color: var(--accent-color) !important; color: #000 !important; }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <a href="#" class="logo">
+            <i class="fas fa-shield-alt"></i>
+            VNC <span>KAVACH</span>
+        </a>
+        <nav class="nav-links">
+            <a href="#">Home</a>
+            <a href="#">Solutions</a>
+            <a href="#">Features</a>
+            <a href="#">Pricing</a>
+            <a href="#">About</a>
+        </nav>
+        <button class="cta-button">Get Started</button>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <!-- Video Background -->
+        <div class="video-background">
+            <video autoplay muted loop playsinline>
+                <source src="4k Video ｜ Technology Looped Background ｜ No Copyright Loop Background Video.mp4" type="video/mp4">
+                <source src="cybersecurity-4k.webm" type="video/webm">
+                <!-- Fallback for browsers that don't support video -->
+                Your browser does not support the video tag.
+            </video>
+        </div>
+        <div class="hero-content">
+            <h1>Advanced Security <span>Solutions</span> for Modern Threats</h1>
+            <p>VNC KAVACH provides cutting-edge security solutions to protect your digital assets from evolving cyber threats. Our advanced technology ensures complete protection for businesses of all sizes.</p>
+            <div class="hero-buttons">
+                <button class="cta-button">Get Protected</button>
+                <button class="btn-outline">Learn More</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <div class="section-title">
+            <h2>Our Security Features</h2>
+            <p>Comprehensive protection with advanced security features designed to keep your data safe</p>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <h3>Advanced Encryption</h3>
+                <p>Military-grade encryption algorithms to protect your sensitive data from unauthorized access.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3>Threat Detection</h3>
+                <p>AI-powered threat detection system that identifies and neutralizes threats in real-time.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-bug"></i>
+                </div>
+                <h3>Vulnerability Scanning</h3>
+                <p>Continuous scanning for vulnerabilities and proactive patching to prevent potential breaches.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <h3>Access Control</h3>
+                <p>Granular access controls with multi-factor authentication for enhanced security.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-cloud"></i>
+                </div>
+                <h3>Cloud Security</h3>
+                <p>Comprehensive protection for cloud infrastructure and applications across all platforms.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h3>Security Analytics</h3>
+                <p>Advanced analytics and reporting to monitor security posture and identify trends.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Security Animation Section -->
+    <section class="security-animation">
+        <div class="section-title">
+            <h2>How VNC KAVACH Protects You</h2>
+            <p>Our multi-layered security approach ensures complete protection for your digital assets</p>
+        </div>
+        <div class="animation-container">
+            <div class="data-flow">
+                <div class="data-node"></div>
+                <div class="data-node"></div>
+                <div class="data-node"></div>
+                <div class="data-node"></div>
+                <div class="data-node"></div>
+            </div>
+            <div class="shield">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <h2>Ready to Secure Your Business?</h2>
+        <p>Join thousands of companies that trust VNC KAVACH for their security needs. Get started today with our risk-free trial.</p>
+        <div class="cta-buttons">
+            <button class="cta-button">Start Free Trial</button>
+            <button class="btn-outline">Contact Sales</button>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-column">
+                <h3>VNC KAVACH</h3>
+                <p>Advanced security solutions for modern digital threats. Protecting businesses worldwide since 2015.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+            <div class="footer-column">
+                <h3>Solutions</h3>
+                <ul>
+                    <li><a href="#">Endpoint Security</a></li>
+                    <li><a href="#">Network Security</a></li>
+                    <li><a href="#">Cloud Security</a></li>
+                    <li><a href="#">Data Protection</a></li>
+                    <li><a href="#">Threat Intelligence</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Company</h3>
+                <ul>
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Careers</a></li>
+                    <li><a href="#">Press</a></li>
+                    <li><a href="#">Partners</a></li>
+                    <li><a href="#">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Resources</h3>
+                <ul>
+                    <li><a href="#">Blog</a></li>
+                    <li><a href="#">Whitepapers</a></li>
+                    <li><a href="#">Case Studies</a></li>
+                    <li><a href="#">Webinars</a></li>
+                    <li><a href="#">Support</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>&copy; 2023 VNC KAVACH. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Header scroll effect
+        window.addEventListener('scroll', function() {
+            const header = document.querySelector('header');
+            if (window.scrollY > 50) {
+                header.style.padding = '15px 5%';
+                header.style.background = 'rgba(5, 5, 5, 0.98)';
+            } else {
+                header.style.padding = '20px 5%';
+                header.style.background = 'rgba(5, 5, 5, 0.95)';
+            }
+        });
+
+        // Animation on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.feature-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'opacity 0.5s, transform 0.5s';
+            observer.observe(card);
+        });
+
+        // Video background error handling
+        const video = document.querySelector('.video-background video');
+        
+        if (video) {
+            // Handle video loading errors
+            video.addEventListener('error', function() {
+                console.log('Video failed to load, using fallback background');
+                document.querySelector('.video-background').style.display = 'none';
+                document.querySelector('.hero').style.background = 'linear-gradient(135deg, var(--darker) 0%, var(--dark) 50%, var(--primary) 100%)';;
+            });
+        }
+    </script>
+</body>
+</html>

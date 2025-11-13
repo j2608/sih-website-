@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VNC KAVACH - AI-Powered VNC Security</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style id="dashboard-theme">
+        :root {
+            --primary: #00BFA5;
+            --primary-dark: #00cc6a;
+            --secondary: #F0F0F0;
+            --dark: #0a0a0a;
+            --light: #ffffff;
+            --gray: #888888;
+            --success: #00FF00;
+            --warning: #FFFF00;
+            --danger: #FF0000;
+            --info: #00FFFF;
+            --transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+            --bg-primary: rgba(255, 255, 255, 0.05);
+            --bg-secondary: rgba(255, 255, 255, 0.08);
+            --text-primary: #FFFFFF;
+            --text-secondary: #F0F0F0;
+            --text-muted: #888888;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --accent-color: #00BFA5;
+            --accent-hover: #00cc6a;
+        }
+
+        body { background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%); color: var(--text-primary); }
+        body::before { content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: radial-gradient(circle at 25% 25%, rgba(0, 191, 165, 0.03) 0%, transparent 50%), radial-gradient(circle at 75% 75%, rgba(0, 191, 165, 0.03) 0%, transparent 50%); pointer-events: none; z-index: -1; }
+    </style>
+
+    <style>
+        /* Page CSS (keeps dashboard theme variables intact) */
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-content {
+            max-width: 600px;
+            z-index: 10;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            line-height: 1.2;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-light);
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 20px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(10, 132, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text);
+            border: 2px solid var(--glass-border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--glass);
+            transform: translateY(-3px);
+        }
+
+        /* Enhanced Globe Animation */
+        .globe-container {
+            position: absolute;
+            right: -200px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 700px;
+            height: 700px;
+            z-index: 1;
+        }
+
+        .globe {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            animation: rotate 40s linear infinite, float 6s ease-in-out infinite;
+        }
+
+        .globe-inner {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: 
+                radial-gradient(circle at 30% 30%, var(--primary), transparent 70%),
+                radial-gradient(circle at 70% 70%, var(--secondary), transparent 70%);
+            box-shadow: 
+                0 0 80px var(--primary),
+                inset 0 0 80px rgba(10, 132, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .globe-grid {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-image: 
+                radial-gradient(circle at center, transparent 65%, rgba(255, 255, 255, 0.1) 100%),
+                repeating-linear-gradient(0deg, transparent, transparent 20px, rgba(255, 255, 255, 0.1) 20px, rgba(255, 255, 255, 0.1) 21px),
+                repeating-linear-gradient(90deg, transparent, transparent 20px, rgba(255, 255, 255, 0.1) 20px, rgba(255, 255, 255, 0.1) 21px);
+        }
+
+        .globe-pulse {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(10, 132, 255, 0.4) 0%, transparent 70%);
+            animation: pulse 4s ease-out infinite;
+        }
+
+        .globe-rings {
+            position: absolute;
+            width: 120%;
+            height: 120%;
+            top: -10%;
+            left: -10%;
+            border-radius: 50%;
+            border: 2px solid rgba(10, 132, 255, 0.2);
+            animation: rotate-reverse 30s linear infinite;
+        }
+
+        .globe-rings::before,
+        .globe-rings::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid rgba(0, 212, 170, 0.2);
+        }
+
+        .globe-rings::before {
+            transform: rotate(60deg);
+        }
+
+        .globe-rings::after {
+            transform: rotate(120deg);
+        }
+
+        .globe-dots {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+        }
+
+        .globe-dot {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: var(--secondary);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--secondary);
+        }
+
+        .globe-dot:nth-child(1) { top: 15%; left: 30%; }
+        .globe-dot:nth-child(2) { top: 40%; left: 70%; }
+        .globe-dot:nth-child(3) { top: 65%; left: 20%; }
+        .globe-dot:nth-child(4) { top: 80%; left: 60%; }
+        .globe-dot:nth-child(5) { top: 25%; left: 50%; }
+        .globe-dot:nth-child(6) { top: 55%; left: 80%; }
+
+        .globe-connection {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+        }
+
+        .connection-line {
+            position: absolute;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            transform-origin: left center;
+        }
+
+        @keyframes rotate {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes rotate-reverse {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(-360deg);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(0.8);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        /* Features Section */
+        .section {
+            padding: 100px 0;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 60px;
+            color: var(--text);
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .feature-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 40px 30px;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s, opacity 0.5s;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .feature-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .feature-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 25px;
+            font-size: 1.8rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: var(--text);
+        }
+
+        .feature-card p {
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        /* About Section */
+        .about {
+            background: var(--dark-light);
+            border-radius: 30px;
+            padding: 60px;
+            margin: 50px 0;
+        }
+
+        .about-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+            align-items: center;
+        }
+
+        .about-text h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: var(--text);
+        }
+
+        .about-text p {
+            color: var(--text-light);
+            line-height: 1.7;
+            margin-bottom: 20px;
+        }
+
+        .code-snippet {
+            background: var(--dark);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid var(--glass-border);
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+
+        .code-line {
+            margin-bottom: 10px;
+            color: var(--text-light);
+        }
+
+        .code-comment {
+            color: #6a9955;
+        }
+
+        .code-keyword {
+            color: #569cd6;
+        }
+
+        .code-function {
+            color: #dcdcaa;
+        }
+
+        .code-string {
+            color: #ce9178;
+        }
+
+        /* Contact Section */
+        .contact-form {
+            max-width: 600px;
+            margin: 0 auto;
+            background: var(--glass);
+            border-radius: 20px;
+            padding: 40px;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(10, 132, 255, 0.2);
+        }
+
+        textarea.form-control {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .submit-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--dark-light);
+            padding: 60px 0 30px;
+            margin-top: 100px;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+            margin-bottom: 50px;
+        }
+
+        .footer-column h3 {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: var(--text);
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 10px;
+        }
+
+        .footer-links a {
+            color: var(--text-light);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .social-links a {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--glass);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text);
+            transition: all 0.3s;
+        }
+
+        .social-links a:hover {
+            background: var(--primary);
+            transform: translateY(-3px);
+        }
+
+        .copyright {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid var(--glass-border);
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .globe-container {
+                width: 500px;
+                height: 500px;
+                right: -150px;
+            }
+
+            .hero h1 {
+                font-size: 2.8rem;
+            }
+
+            .about-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero {
+                text-align: center;
+            }
+
+            .globe-container {
+                display: none;
+            }
+
+            .cta-buttons {
+                justify-content: center;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .about {
+                padding: 40px 30px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .contact-form {
+                padding: 30px 20px;
+            }
+
+            .feature-card {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+    <!-- Required libs for globe and particle effects -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+    <script src="//unpkg.com/globe.gl"></script>
+    <style id="dashboard-override">
+        body { background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%) !important; color: var(--text-primary) !important; }
+        body::before { background-image: radial-gradient(circle at 25% 25%, rgba(0, 191, 165, 0.03) 0%, transparent 50%), radial-gradient(circle at 75% 75%, rgba(0, 191, 165, 0.03) 0%, transparent 50%) !important; }
+        .sidebar-logo, .menu-item:hover, .menu-item.active, .dashboard-title, .dashboard-subtitle, .back-to-home, .security-btn.primary, .security-link, .notification-btn, .profile-btn { color: var(--accent-color) !important; }
+        .menu-item.active { border-left-color: var(--accent-color) !important; background: rgba(0,191,165,0.06) !important; }
+        .security-btn.primary { background: var(--accent-color) !important; border-color: var(--accent-color) !important; color: #000 !important; }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="container nav-container">
+            <div class="logo">
+                <i class="fas fa-shield-alt"></i>
+                <span>VNC KAVACH</span>
+            </div>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#about">About</a>
+                <a href="#contact">Contact</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Protect Your VNC Sessions with AI-Powered Detection</h1>
+                <p>Advanced anomaly detection, real-time alerts, and forensic logging</p>
+                <div class="cta-buttons">
+                    <button class="btn btn-primary">Request Demo</button>
+                    <button class="btn btn-secondary">See Features</button>
+                </div>
+            </div>
+        </div>
+        <div class="globe-container">
+            <div class="globe">
+                <div class="globe-inner">
+                    <div class="globe-grid"></div>
+                    <div class="globe-pulse"></div>
+                    <div class="globe-rings"></div>
+                    <div class="globe-dots">
+                        <div class="globe-dot"></div>
+                        <div class="globe-dot"></div>
+                        <div class="globe-dot"></div>
+                        <div class="globe-dot"></div>
+                        <div class="globe-dot"></div>
+                        <div class="globe-dot"></div>
+                    </div>
+                    <div class="globe-connection">
+                        <!-- Connection lines will be generated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="section" id="features">
+        <div class="container">
+            <h2 class="section-title">Advanced Security Features</h2>
+            <div class="features">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-radar"></i>
+                    </div>
+                    <h3>Anomaly Detection</h3>
+                    <p>Our AI-powered system continuously monitors VNC sessions for unusual behavior patterns, automatically flagging potential security threats before they can cause damage.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <h3>Real-Time Alerts</h3>
+                    <p>Receive instant notifications when suspicious activity is detected, allowing your security team to respond immediately to potential threats.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-clipboard-list"></i>
+                    </div>
+                    <h3>Forensic Logging</h3>
+                    <p>Comprehensive logging of all VNC session activities provides detailed forensic data for post-incident analysis and compliance reporting.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="section" id="about">
+        <div class="container">
+            <div class="about">
+                <div class="about-content">
+                    <div class="about-text">
+                        <h2>How VNC KAVACH Works</h2>
+                        <p>VNC KAVACH leverages advanced machine learning algorithms to analyze VNC session data in real-time, identifying patterns that indicate potential security threats.</p>
+                        <p>Our system integrates seamlessly with your existing VNC infrastructure, requiring minimal configuration while providing maximum protection.</p>
+                    </div>
+                    <div class="code-snippet">
+                        <div class="code-line"><span class="code-comment"># Initialize VNC KAVACH security module</span></div>
+                        <div class="code-line"><span class="code-keyword">from</span> vnc_kavach <span class="code-keyword">import</span> SecurityMonitor</div>
+                        <div class="code-line">&nbsp;</div>
+                        <div class="code-line"><span class="code-comment"># Create monitor instance</span></div>
+                        <div class="code-line">monitor = <span class="code-function">SecurityMonitor</span>(</div>
+                        <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;api_key=<span class="code-string">"your_api_key"</span>,</div>
+                        <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;anomaly_threshold=<span class="code-string">0.85</span></div>
+                        <div class="code-line">)</div>
+                        <div class="code-line">&nbsp;</div>
+                        <div class="code-line"><span class="code-comment"># Start monitoring VNC sessions</span></div>
+                        <div class="code-line">monitor.<span class="code-function">start_monitoring</span>()</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="section" id="contact">
+        <div class="container">
+            <h2 class="section-title">Get In Touch</h2>
+            <div class="contact-form">
+                <form id="contactForm">
+                    <div class="form-group">
+                        <label for="name">Full Name</label>
+                        <input type="text" id="name" class="form-control" placeholder="Enter your full name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" class="form-control" placeholder="Enter your email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Message</label>
+                        <textarea id="message" class="form-control" placeholder="Tell us about your security needs" required></textarea>
+                    </div>
+                    <button type="submit" class="submit-btn">Send Message</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3>VNC KAVACH</h3>
+                    <p>Advanced AI-powered security for your VNC sessions, protecting against threats in real-time.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                        <a href="#"><i class="fab fa-github"></i></a>
+                    </div>
+                </div>
+                <div class="footer-column">
+                    <h3>Product</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">Features</a></li>
+                        <li><a href="#">Pricing</a></li>
+                        <li><a href="#">Documentation</a></li>
+                        <li><a href="#">Releases</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Company</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Legal</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Security</a></li>
+                        <li><a href="#">Compliance</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2023 VNC KAVACH. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Scroll animation for feature cards
+        document.addEventListener('DOMContentLoaded', function() {
+            const featureCards = document.querySelectorAll('.feature-card');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            featureCards.forEach(card => {
+                observer.observe(card);
+            });
+            
+            // Smooth scrolling for navigation links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    
+                    const targetId = this.getAttribute('href');
+                    if (targetId === '#') return;
+                    
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        window.scrollTo({
+                            top: targetElement.offsetTop - 80,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+            
+            // Form submission
+            document.getElementById('contactForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                alert('Thank you for your message! We will get back to you soon.');
+                this.reset();
+            });
+            
+            // Create connection lines for the globe
+            createConnectionLines();
+        });
+
+        function createConnectionLines() {
+            const connectionContainer = document.querySelector('.globe-connection');
+            const dots = document.querySelectorAll('.globe-dot');
+            
+            // Clear any existing lines
+            connectionContainer.innerHTML = '';
+            
+            // Create lines between dots
+            for (let i = 0; i < dots.length; i++) {
+                for (let j = i + 1; j < dots.length; j++) {
+                    // Only connect some dots (not all)
+                    if (Math.random() > 0.6) {
+                        const dot1 = dots[i];
+                        const dot2 = dots[j];
+                        
+                        const rect1 = dot1.getBoundingClientRect();
+                        const rect2 = dot2.getBoundingClientRect();
+                        
+                        const globeRect = document.querySelector('.globe-inner').getBoundingClientRect();
+                        
+                        const x1 = rect1.left + rect1.width/2 - globeRect.left;
+                        const y1 = rect1.top + rect1.height/2 - globeRect.top;
+                        const x2 = rect2.left + rect2.width/2 - globeRect.left;
+                        const y2 = rect2.top + rect2.height/2 - globeRect.top;
+                        
+                        const length = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+                        const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+                        
+                        const line = document.createElement('div');
+                        line.className = 'connection-line';
+                        line.style.width = `${length}px`;
+                        line.style.left = `${x1}px`;
+                        line.style.top = `${y1}px`;
+                        line.style.transform = `rotate(${angle}deg)`;
+                        
+                        connectionContainer.appendChild(line);
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

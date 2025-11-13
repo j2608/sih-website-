@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>VNC KAVACH - Blockchain Demo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style id="dashboard-theme">
+        :root {
+            --primary: #00BFA5;
+            --primary-dark: #00cc6a;
+            --secondary: #F0F0F0;
+            --dark: #0a0a0a;
+            --light: #ffffff;
+            --gray: #888888;
+            --success: #00FF00;
+            --warning: #FFFF00;
+            --danger: #FF0000;
+            --info: #00FFFF;
+            --transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+            --bg-primary: rgba(255, 255, 255, 0.05);
+            --bg-secondary: rgba(255, 255, 255, 0.08);
+            --text-primary: #FFFFFF;
+            --text-secondary: #F0F0F0;
+            --text-muted: #888888;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --accent-color: #00BFA5;
+            --accent-hover: #00cc6a;
+        }
+        body { background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%); color: var(--text-primary); font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }
+        body::before { content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: radial-gradient(circle at 25% 25%, rgba(0, 191, 165, 0.03) 0%, transparent 50%), radial-gradient(circle at 75% 75%, rgba(0, 191, 165, 0.03) 0%, transparent 50%); pointer-events: none; z-index: -1; }
+    </style>
+    <style>
+        .wrap { max-width:1100px; margin:32px auto; padding:20px; }
+        h1 { color: var(--accent-color); margin-bottom:8px; }
+        .grid { display:grid; grid-template-columns: 1fr 420px; gap:20px; }
+        .card { background: rgba(255,255,255,0.03); padding:16px; border-radius:10px; border:1px solid rgba(255,255,255,0.06); }
+        label { display:block; margin-top:8px; font-size:14px; color:var(--text-secondary); }
+        input, select, button, textarea { width:100%; padding:10px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.06); background:rgba(255,255,255,0.02); color:var(--text-primary); }
+        button.primary { background:var(--accent-color); color:#000; border:none; margin-top:10px; cursor:pointer; }
+        pre { background: rgba(0,0,0,0.25); padding:10px; border-radius:8px; overflow:auto; max-height:480px; }
+        .tx-list { max-height:200px; overflow:auto; }
+        .muted { color:var(--text-muted); font-size:13px; }
+        .controls { display:flex; gap:8px; }
+        .controls button { flex:1; }
+        .small { font-size:13px; }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <h1>Blockchain Demo</h1>
+        <p class="muted">A minimal proof-of-work blockchain demo (client-side). Transactions and chain are stored in localStorage. Difficulty is adjustable — keep it small for quick mining.</p>
+
+        <div class="grid">
+            <div>
+                <div class="card">
+                    <h3>Create Transaction</h3>
+                    <label>Sender</label>
+                    <input id="tx-sender" placeholder="Alice">
+                    <label>Recipient</label>
+                    <input id="tx-recipient" placeholder="Bob">
+                    <label>Amount</label>
+                    <input id="tx-amount" type="number" value="1">
+                    <button id="btn-add-tx" class="primary">Add Transaction</button>
+                    <div class="tx-list" id="pending-txs"></div>
+                </div>
+
+                <div class="card" style="margin-top:16px;">
+                    <h3>Mining</h3>
+                    <label>Miner Address (reward recipient)</label>
+                    <input id="miner-address" placeholder="Miner1">
+                    <label>Difficulty (leading zeros)</label>
+                    <select id="difficulty">
+                        <option value="2">2</option>
+                        <option value="3" selected>3</option>
+                        <option value="4">4</option>
+                    </select>
+                    <div class="controls" style="margin-top:10px;">
+                        <button id="btn-mine" class="primary">Mine Block</button>
+                        <button id="btn-validate">Validate Chain</button>
+                    </div>
+                    <div id="mine-status" class="muted small" style="margin-top:8px;"></div>
+                </div>
+
+                <div class="card" style="margin-top:16px;">
+                    <h3>Actions</h3>
+                    <div class="controls">
+                        <button id="btn-show-chain">Show Chain</button>
+                        <button id="btn-reset">Reset Chain</button>
+                    </div>
+                </div>
+            </div>
+
+            <aside>
+                <div class="card">
+                    <h3>Chain (JSON)</h3>
+                    <pre id="chain-output">(empty)</pre>
+                </div>
+
+                <div class="card" style="margin-top:16px;">
+                    <h3>Balances</h3>
+                    <pre id="balances">(none)</pre>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <script src="blockchain.js"></script>
+</body>
+</html>

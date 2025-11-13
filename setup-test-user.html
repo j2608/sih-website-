@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test User Setup</title>
+    <style id="dashboard-theme">
+        :root {
+            --primary: #00BFA5;
+            --primary-dark: #00cc6a;
+            --secondary: #F0F0F0;
+            --dark: #0a0a0a;
+            --light: #ffffff;
+            --gray: #888888;
+            --success: #00FF00;
+            --warning: #FFFF00;
+            --danger: #FF0000;
+            --info: #00FFFF;
+            --transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+            --bg-primary: rgba(255, 255, 255, 0.05);
+            --bg-secondary: rgba(255, 255, 255, 0.08);
+            --text-primary: #FFFFFF;
+            --text-secondary: #F0F0F0;
+            --text-muted: #888888;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --accent-color: #00BFA5;
+            --accent-hover: #00cc6a;
+        }
+
+        body { background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%); color: var(--text-primary); }
+        body::before { content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: radial-gradient(circle at 25% 25%, rgba(0, 191, 165, 0.03) 0%, transparent 50%), radial-gradient(circle at 75% 75%, rgba(0, 191, 165, 0.03) 0%, transparent 50%); pointer-events: none; z-index: -1; }
+    </style>
+    <style id="dashboard-override">
+        body { background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%) !important; color: var(--text-primary) !important; }
+        body::before { background-image: radial-gradient(circle at 25% 25%, rgba(0, 191, 165, 0.03) 0%, transparent 50%), radial-gradient(circle at 75% 75%, rgba(0, 191, 165, 0.03) 0%, transparent 50%) !important; }
+        .sidebar-logo, .menu-item:hover, .menu-item.active, .dashboard-title, .dashboard-subtitle, .back-to-home, .security-btn.primary, .security-link, .notification-btn, .profile-btn { color: var(--accent-color) !important; }
+        .menu-item.active { border-left-color: var(--accent-color) !important; background: rgba(0,191,165,0.06) !important; }
+        .security-btn.primary { background: var(--accent-color) !important; border-color: var(--accent-color) !important; color: #000 !important; }
+    </style>
+</head>
+<body>
+    <h1>Setting up test user...</h1>
+    <script>
+        // Create a test user
+        const testUser = {
+            id: Date.now(),
+            fullName: 'Test User',
+            email: 'test@example.com',
+            company: 'Test Company',
+            password: 'password123',
+            newsletter: true,
+            createdAt: new Date().toISOString()
+        };
+
+        // Store in localStorage
+        const users = [testUser];
+        localStorage.setItem('vncUsers', JSON.stringify(users));
+
+        // Clear any existing current user
+        localStorage.removeItem('currentUser');
+
+        // Redirect to login page
+        window.location.href = 'login.html';
+    </script>
+</body>
+</html>

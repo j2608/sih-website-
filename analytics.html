@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VNC KAVACH - Security Analytics</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00BFA5;
+            --primary-dark: #00cc6a;
+            --secondary: #F0F0F0;
+            --dark: #0a0a0a;
+            --light: #ffffff;
+            --gray: #888888;
+            --success: #00FF00;
+            --warning: #FFFF00;
+            --danger: #FF0000;
+            --info: #00FFFF;
+            --transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+            /* Analytics-specific variables */
+            --bg-primary: rgba(255, 255, 255, 0.05);
+            --bg-secondary: rgba(255, 255, 255, 0.08);
+            --text-primary: #FFFFFF;
+            --text-secondary: #F0F0F0;
+            --text-muted: #888888;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --accent-color: #00BFA5;
+            --accent-hover: #00cc6a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: #FFFFFF;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
+            background-attachment: fixed;
+            overflow-x: hidden;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                radial-gradient(circle at 25% 25%, rgba(0, 191, 165, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(0, 191, 165, 0.03) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Dashboard Layout */
+        .dashboard {
+            display: flex;
+            min-height: 100vh;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 30px 0;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 100;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 0 30px 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-logo {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            margin-bottom: 20px;
+        }
+
+        .sidebar-logo i {
+            margin-right: 12px;
+            font-size: 28px;
+        }
+
+        .sidebar-subtitle {
+            color: #F0F0F0;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .back-to-home {
+            display: inline-block;
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 12px;
+            margin-top: 10px;
+            padding: 5px 10px;
+            border-radius: 6px;
+            transition: var(--transition);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .back-to-home:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--secondary);
+        }
+
+        .back-to-home i {
+            margin-right: 5px;
+        }
+
+        .sidebar-menu {
+            padding: 30px 0;
+        }
+
+        .menu-section {
+            margin-bottom: 30px;
+        }
+
+        .menu-section-title {
+            color: #F0F0F0;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 0 30px 10px;
+            opacity: 0.6;
+        }
+
+        .menu-item {
+            display: block;
+            color: #FFFFFF;
+            text-decoration: none;
+            padding: 12px 30px;
+            transition: var(--transition);
+            border-left: 3px solid transparent;
+            position: relative;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            background: rgba(255, 255, 255, 0.1);
+            border-left-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .menu-item i {
+            margin-right: 12px;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 30px;
+        }
+
+        /* Header */
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .dashboard-title {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .dashboard-subtitle {
+            color: #F0F0F0;
+            font-size: 16px;
+            margin-top: 5px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .notification-btn, .profile-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--primary);
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            z-index: 100;
+        }
+
+        .notification-btn:hover, .profile-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* Analytics Styles */
+        .analytics-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .analytics-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 0;
+        }
+
+        .analytics-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .analytics-select {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .analytics-btn {
+            padding: 8px 16px;
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+
+        .analytics-btn:hover {
+            background: var(--accent-hover);
+        }
+
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .analytics-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 25px;
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            transition: var(--transition);
+        }
+
+        .analytics-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .analytics-card.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .analytics-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .analytics-card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .analytics-card-icon {
+            color: var(--accent-color);
+            font-size: 20px;
+        }
+
+        .threat-stats {
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+        }
+
+        .threat-stat {
+            flex: 1;
+        }
+
+        .threat-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--accent-color);
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .threat-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .vector-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .vector-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .vector-name {
+            flex: 1;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .vector-bar {
+            flex: 2;
+            height: 8px;
+            background: var(--bg-primary);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .vector-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-color), var(--accent-hover));
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .vector-count {
+            flex: 0.5;
+            text-align: right;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .geo-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .geo-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 10px;
+            background: var(--bg-primary);
+            border-radius: 8px;
+        }
+
+        .geo-flag {
+            font-size: 20px;
+        }
+
+        .geo-name {
+            flex: 1;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .geo-count {
+            font-weight: 600;
+            color: var(--accent-color);
+        }
+
+        .response-metrics {
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+        }
+
+        .response-metric {
+            flex: 1;
+        }
+
+        .response-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--accent-color);
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .response-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .trend-chart-placeholder,
+        .analytics-chart-placeholder {
+            height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-primary);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .trend-chart-placeholder::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 49%, rgba(0, 191, 165, 0.05) 50%, transparent 51%);
+            background-size: 20px 20px;
+            animation: gridMove 20s linear infinite;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(20px, 20px); }
+        }
+
+        .simple-chart {
+            display: flex;
+            align-items: end;
+            justify-content: space-around;
+            height: 200px;
+            width: 100%;
+            padding: 20px;
+        }
+
+        .chart-bar {
+            width: 30px;
+            background: linear-gradient(180deg, var(--accent-color), var(--accent-hover));
+            border-radius: 4px 4px 0 0;
+            position: relative;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .chart-bar:hover {
+            transform: scaleY(1.1);
+            filter: brightness(1.2);
+        }
+
+        .chart-bar::after {
+            content: attr(data-value);
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--text-primary);
+            font-size: 12px;
+            font-weight: 600;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .chart-bar:hover::after {
+            opacity: 1;
+        }
+
+        .chart-label {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--text-secondary);
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .vulnerability-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .vulnerability-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px;
+            background: var(--bg-primary);
+            border-radius: 8px;
+        }
+
+        .vulnerability-severity {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .vulnerability-severity.critical {
+            background: #ff4444;
+        }
+
+        .vulnerability-severity.high {
+            background: #ff8844;
+        }
+
+        .vulnerability-severity.medium {
+            background: #ffaa44;
+        }
+
+        .vulnerability-severity.low {
+            background: #44aa88;
+        }
+
+        .vulnerability-info {
+            flex: 1;
+        }
+
+        .vulnerability-name {
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .vulnerability-count {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Notification Badge */
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--danger);
+            color: var(--dark);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease-in-out;
+            transform: scale(1);
+            opacity: 1;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            backdrop-filter: blur(5px);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: rgba(26, 26, 26, 0.95);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #FFFFFF;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-body {
+            color: #F0F0F0;
+            line-height: 1.6;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: var(--transition);
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .analytics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .analytics-card.full-width {
+                grid-column: span 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+
+            .analytics-card {
+                padding: 20px;
+            }
+        }
+
+        /* Mobile Menu Toggle */
+        .mobile-menu-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 101;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--primary);
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .mobile-menu-toggle:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        @media (max-width: 1024px) {
+            .mobile-menu-toggle {
+                display: flex;
+            }
+        }
+
+        .security-score-circle {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 20px;
+            position: relative;
+            border-radius: 50%;
+            background: conic-gradient(var(--accent-color) 87%, var(--bg-primary) 87%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 30px rgba(0, 191, 165, 0.3);
+        }
+
+        .security-score-inner {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: var(--bg-secondary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .security-score-number {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--accent-color);
+            margin-bottom: 5px;
+        }
+
+        .security-score-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        .security-score-change {
+            font-size: 12px;
+            color: var(--success);
+            margin-top: 5px;
+        }
+
+        .compliance-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 10px;
+            background: var(--bg-primary);
+            border-radius: 8px;
+            transition: var(--transition);
+        }
+
+        .compliance-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .compliance-icon {
+            font-size: 20px;
+            width: 30px;
+            text-align: center;
+        }
+
+        .compliance-info {
+            flex: 1;
+        }
+
+        .compliance-name {
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .compliance-status {
+            font-size: 14px;
+        }
+    </style>
+    <style id="dashboard-override">
+        body { background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%) !important; color: var(--text-primary) !important; }
+        body::before { background-image: radial-gradient(circle at 25% 25%, rgba(0, 191, 165, 0.03) 0%, transparent 50%), radial-gradient(circle at 75% 75%, rgba(0, 191, 165, 0.03) 0%, transparent 50%) !important; }
+        .sidebar-logo, .menu-item:hover, .menu-item.active, .dashboard-title, .dashboard-subtitle, .back-to-home, .security-btn.primary, .security-link, .notification-btn, .profile-btn { color: var(--accent-color) !important; }
+        .menu-item.active { border-left-color: var(--accent-color) !important; background: rgba(0,191,165,0.06) !important; }
+        .security-btn.primary { background: var(--accent-color) !important; border-color: var(--accent-color) !important; color: #000 !important; }
+    </style>
+</head>
+<body>
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Dashboard Layout -->
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <a href="index.html" class="sidebar-logo">
+                    <i class="fas fa-shield-alt"></i>
+                    VNC KAVACH
+                </a>
+                <p class="sidebar-subtitle">Security Dashboard</p>
+                <a href="index.html" class="back-to-home">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Home
+                </a>
+            </div>
+
+            <nav class="sidebar-menu">
+                <div class="menu-section">
+                    <div class="menu-section-title">Overview</div>
+                    <a href="dashboard.html" class="menu-item">
+                        <i class="fas fa-tachometer-alt"></i>
+                        Dashboard
+                    </a>
+                    <a href="analytics.html" class="menu-item active">
+                        <i class="fas fa-chart-line"></i>
+                        Analytics
+                    </a>
+                    <a href="security.html" class="menu-item">
+                        <i class="fas fa-shield-alt"></i>
+                        Security
+                    </a>
+                </div>
+
+                <div class="menu-section">
+                    <div class="menu-section-title">Monitoring</div>
+                    <a href="network.html" class="menu-item">
+                        <i class="fas fa-network-wired"></i>
+                        Network
+                    </a>
+                    <a href="systems.html" class="menu-item">
+                        <i class="fas fa-server"></i>
+                        Systems
+                    </a>
+                    <a href="access-control.html" class="menu-item">
+                        <i class="fas fa-user-shield"></i>
+                        Access Control
+                    </a>
+                    <a href="threats.html" class="menu-item">
+                        <i class="fas fa-bug"></i>
+                        Threats
+                    </a>
+                </div>
+
+                <div class="menu-section">
+                    <div class="menu-section-title">Management</div>
+                    <a href="users.html" class="menu-item">
+                        <i class="fas fa-users"></i>
+                        Users
+                    </a>
+                    <a href="settings.html" class="menu-item">
+                        <i class="fas fa-cog"></i>
+                        Settings
+                    </a>
+                    <a href="reports.html" class="menu-item">
+                        <i class="fas fa-file-alt"></i>
+                        Reports
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Header -->
+            <header class="dashboard-header">
+                <div>
+                    <h1 class="dashboard-title">Security Analytics</h1>
+                    <p class="dashboard-subtitle">Comprehensive security insights and reporting</p>
+                </div>
+                <div class="header-actions">
+                    <button class="notification-btn" onclick="showNotifications()">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge" id="notificationBadge">3</span>
+                    </button>
+                    <button class="profile-btn" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Analytics Header -->
+            <div class="analytics-header fade-in-up">
+                <h3 class="analytics-title">Security Analytics Dashboard</h3>
+                <div class="analytics-controls">
+                    <select class="analytics-select" id="timeRange">
+                        <option value="24h">Last 24 Hours</option>
+                        <option value="7d">Last 7 Days</option>
+                        <option value="30d" selected>Last 30 Days</option>
+                        <option value="90d">Last 90 Days</option>
+                    </select>
+                    <button class="analytics-btn" onclick="exportReport()">
+                        <i class="fas fa-download"></i>
+                        Export Report
+                    </button>
+                </div>
+            </div>
+
+            <!-- Analytics Grid -->
+            <div class="analytics-grid">
+                <!-- Threat Overview -->
+                <div class="analytics-card fade-in-up">
+                    <div class="analytics-card-header">
+                        <h4 class="analytics-card-title">Threat Overview</h4>
+                        <div class="analytics-card-icon">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                    </div>
+                    <div class="analytics-chart-placeholder">
+                        <div class="threat-stats">
+                            <div class="threat-stat">
+                                <span class="threat-number" id="totalThreats">1,247</span>
+                                <span class="threat-label">Total Threats</span>
+                            </div>
+                            <div class="threat-stat">
+                                <span class="threat-number" id="blockedThreats">89</span>
+                                <span class="threat-label">Blocked</span>
+                            </div>
+                            <div class="threat-stat">
+                                <span class="threat-number" id="escalatedThreats">12</span>
+                                <span class="threat-label">Escalated</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Attack Vectors -->
+                <div class="analytics-card fade-in-up">
+                    <div class="analytics-card-header">
+                        <h4 class="analytics-card-title">Attack Vectors</h4>
+                        <div class="analytics-card-icon">
+                            <i class="fas fa-target"></i>
+                        </div>
+                    </div>
+                    <div class="vector-list">
+                        <div class="vector-item">
+                            <div class="vector-name">Phishing</div>
+                            <div class="vector-bar">
+                                <div class="vector-fill" style="width: 65%"></div>
+                            </div>
+                            <div class="vector-count">812</div>
+                        </div>
+                        <div class="vector-item">
+                            <div class="vector-name">Malware</div>
+                            <div class="vector-bar">
+                                <div class="vector-fill" style="width: 45%"></div>
+                            </div>
+                            <div class="vector-count">567</div>
+                        </div>
+                        <div class="vector-item">
+                            <div class="vector-name">DDoS</div>
+                            <div class="vector-bar">
+                                <div class="vector-fill" style="width: 25%"></div>
+                            </div>
+                            <div class="vector-count">312</div>
+                        </div>
+                        <div class="vector-item">
+                            <div class="vector-name">Brute Force</div>
+                            <div class="vector-bar">
+                                <div class="vector-fill" style="width: 15%"></div>
+                            </div>
+                            <div class="vector-count">189</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Geographic Distribution -->
+                <div class="analytics-card fade-in-up">
+                    <div class="analytics-card-header">
+                        <h4 class="analytics-card-title">Geographic Distribution</h4>
+                        <div class="analytics-card-icon">
+                            <i class="fas fa-globe"></i>
+                        </div>
+                    </div>
+                    <div class="geo-list">
+                        <div class="geo-item">
+                            <div class="geo-flag">🇺🇸</div>
+                            <div class="geo-name">United States</div>
+                            <div class="geo-count">423</div>
+                        </div>
+                        <div class="geo-item">
+                            <div class="geo-flag">🇨🇳</div>
+                            <div class="geo-name">China</div>
+                            <div class="geo-count">298</div>
+                        </div>
+                        <div class="geo-item">
+                            <div class="geo-flag">🇷🇺</div>
+                            <div class="geo-name">Russia</div>
+                            <div class="geo-count">187</div>
+                        </div>
+                        <div class="geo-item">
+                            <div class="geo-flag">🇮🇳</div>
+                            <div class="geo-name">India</div>
+                            <div class="geo-count">156</div>
+                        </div>
+                        <div class="geo-item">
+                            <div class="geo-flag">🇧🇷</div>
+                            <div class="geo-name">Brazil</div>
+                            <div class="geo-count">98</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Response Time -->
+                <div class="analytics-card fade-in-up">
+                    <div class="analytics-card-header">
+                        <h4 class="analytics-card-title">Response Time</h4>
+                        <div class="analytics-card-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                    </div>
+                    <div class="response-metrics">
+                        <div class="response-metric">
+                            <div class="response-value">2.3s</div>
+                            <div class="response-label">Average Detection</div>
+                        </div>
+                        <div class="response-metric">
+                            <div class="response-value">1.8s</div>
+                            <div class="response-label">Average Response</div>
+                        </div>
+                        <div class="response-metric">
+                            <div class="response-value">0.9s</div>
+                            <div class="response-label">Average Mitigation</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trend Chart -->
+                <div class="analytics-card full-width fade-in-up">
+                    <div class="analytics-card-header">
+                        <h4 class="analytics-card-title">Threat Trends</h4>
+                        <div class="analytics-card-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                    </div>
+                    <div class="trend-chart-placeholder">
+                        <div class="simple-chart">
+                            <div class="chart-bar" style="height: 40%;" data-value="124" title="Week 1">
+                                <div class="chart-label">W1</div>
+                            </div>
+                            <div class="chart-bar" style="height: 60%;" data-value="186" title="Week 2">
+                                <div class="chart-label">W2</div>
+                            </div>
+                            <div class="chart-bar" style="height: 80%;" data-value="248" title="Week 3">
+                                <div class="chart-label">W3</div>
+                            </div>
+                            <div class="chart-bar" style="height: 55%;" data-value="171" title="Week 4">
+                                <div class="chart-label">W4</div>
+                            </div>
+                            <div class="chart-bar" style="height: 90%;" data-value="279" title="Week 5">
+                                <div class="chart-label">W5</div>
+                            </div>
+                            <div class="chart-bar" style="height: 70%;" data-value="217" title="Week 6">
+                                <div class="chart-label">W6</div>
+                            </div>
+                            <div class="chart-bar" style="height: 85%;" data-value="263" title="Week 7">
+                                <div class="chart-label">W7</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top Vulnerabilities -->
+                <div class="analytics-card fade-in-up">
+                    <div class="analytics-card-header">
+                        <h4 class="analytics-card-title">Top Vulnerabilities</h4>
+                        <div class="analytics-card-icon">
+                            <i class="fas fa-bug"></i>
+                        </div>
+                    </div>
+                    <div class="vulnerability-list">
+                        <div class="vulnerability-item">
+                            <div class="vulnerability-severity critical"></div>
+                            <div class="vulnerability-info">
+                                <div class="vulnerability-name">SQL Injection</div>
+                                <div class="vulnerability-count">47 instances</div>
+                            </div>
+                        </div>
+                        <div class="vulnerability-item">
+                            <div class="vulnerability-severity high"></div>
+                            <div class="vulnerability-info">
+                                <div class="vulnerability-name">Weak Passwords</div>
+                                <div class="vulnerability-count">32 instances</div>
+                            </div>
+                        </div>
+                        <div class="vulnerability-item">
+                            <div class="vulnerability-severity medium"></div>
+                            <div class="vulnerability-info">
+                                <div class="vulnerability-name">Outdated Software</div>
+                                <div class="vulnerability-count">28 instances</div>
+                            </div>
+                        </div>
+                        <div class="vulnerability-item">
+                            <div class="vulnerability-severity low"></div>
+                            <div class="vulnerability-info">
+                                <div class="vulnerability-name">Misconfigurations</div>
+                                <div class="vulnerability-count">19 instances</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security Score -->
+                <div class="analytics-card fade-in-up">
+                    <div class="analytics-card-header">
+                        <h4 class="analytics-card-title">Security Score</h4>
+                        <div class="analytics-card-icon">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                    </div>
+                    <div class="analytics-chart-placeholder">
+                        <div class="security-score-circle">
+                            <div class="security-score-inner">
+                                <div class="security-score-number">87%</div>
+                                <div class="security-score-label">Overall Rating</div>
+                            </div>
+                        </div>
+                        <div class="security-score-change">+5% from last month</div>
+                    </div>
+                </div>
+
+                <!-- Compliance Status -->
+                <div class="analytics-card fade-in-up">
+                    <div class="analytics-card-header">
+                        <h4 class="analytics-card-title">Compliance Status</h4>
+                        <div class="analytics-card-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                    <div class="analytics-chart-placeholder">
+                        <div style="display: flex; flex-direction: column; gap: 15px;">
+                            <div class="compliance-item">
+                                <div class="compliance-icon">
+                                    <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                                </div>
+                                <div class="compliance-info">
+                                    <div class="compliance-name">GDPR</div>
+                                    <div class="compliance-status" style="color: var(--success);">Compliant</div>
+                                </div>
+                            </div>
+                            <div class="compliance-item">
+                                <div class="compliance-icon">
+                                    <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                                </div>
+                                <div class="compliance-info">
+                                    <div class="compliance-name">HIPAA</div>
+                                    <div class="compliance-status" style="color: var(--success);">Compliant</div>
+                                </div>
+                            </div>
+                            <div class="compliance-item">
+                                <div class="compliance-icon">
+                                    <i class="fas fa-exclamation-triangle" style="color: var(--warning);"></i>
+                                </div>
+                                <div class="compliance-info">
+                                    <div class="compliance-name">PCI DSS</div>
+                                    <div class="compliance-status" style="color: var(--warning);">Review Needed</div>
+                                </div>
+                            </div>
+                            <div class="compliance-item">
+                                <div class="compliance-icon">
+                                    <i class="fas fa-certificate" style="color: var(--success);"></i>
+                                </div>
+                                <div class="compliance-info">
+                                    <div class="compliance-name">ISO 27001</div>
+                                    <div class="compliance-status" style="color: var(--success);">Certified</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Notifications Modal -->
+    <div id="notificationsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Notifications</h3>
+                <button class="modal-close" onclick="closeNotifications()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="notificationsList">
+                    <!-- Notifications will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let notifications = [];
+        let notificationUpdateTimeout = null;
+
+        // Check authentication on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            const currentUser = localStorage.getItem('currentUser');
+            if (!currentUser) {
+                // User not logged in, redirect to login
+                window.location.href = 'login.html';
+            } else {
+                // User is logged in, initialize analytics
+                const user = JSON.parse(currentUser);
+                console.log('Welcome back, ' + user.fullName + '!');
+
+                // Initialize analytics
+                initializeAnalytics();
+            }
+        });
+
+        // Initialize analytics with data
+        function initializeAnalytics() {
+            generateInitialNotifications();
+            updateNotificationsDisplay();
+            startRealTimeUpdates();
+        }
+
+        // Generate initial notifications
+        function generateInitialNotifications() {
+            notifications = [
+                {
+                    id: 1,
+                    type: 'alert',
+                    title: 'New Security Alert',
+                    message: 'Suspicious login attempt blocked',
+                    time: '2 minutes ago',
+                    read: false
+                },
+                {
+                    id: 2,
+                    type: 'update',
+                    title: 'Analytics Update',
+                    message: 'Monthly security report generated',
+                    time: '15 minutes ago',
+                    read: false
+                },
+                {
+                    id: 3,
+                    type: 'info',
+                    title: 'System Update',
+                    message: 'Security definitions updated',
+                    time: '1 hour ago',
+                    read: true
+                }
+            ];
+        }
+
+        // Update notifications display
+        function updateNotificationsDisplay() {
+            const badge = document.getElementById('notificationBadge');
+            const unreadCount = notifications.filter(n => !n.read).length;
+
+            // Add animation class
+            badge.classList.add('updating');
+
+            // Update content after a small delay for smooth transition
+            setTimeout(() => {
+                badge.textContent = unreadCount;
+                badge.style.display = unreadCount > 0 ? 'flex' : 'none';
+
+                // Remove animation class after animation completes
+                setTimeout(() => {
+                    badge.classList.remove('updating');
+                }, 600);
+            }, 50);
+        }
+
+        // Show notifications modal
+        function showNotifications() {
+            event.preventDefault();
+            event.stopPropagation();
+
+            const modal = document.getElementById('notificationsModal');
+            const list = document.getElementById('notificationsList');
+
+            list.innerHTML = notifications.map(notification => `
+                <div class="alert-item ${notification.type} ${notification.read ? 'acknowledged' : ''}" style="margin-bottom: 10px;">
+                    <div class="alert-header">
+                        <div class="alert-title">${notification.title}</div>
+                        <div class="alert-time">${notification.time}</div>
+                    </div>
+                    <div class="alert-message">${notification.message}</div>
+                    ${!notification.read ?
+                        '<div class="alert-actions"><button class="alert-btn" onclick="markAsRead(' + notification.id + ')">Mark as Read</button></div>' :
+                        ''
+                    }
+                </div>
+            `).join('');
+
+            modal.classList.add('show');
+
+            // Prevent any default browser behavior
+            return false;
+        }
+
+        // Close notifications modal
+        function closeNotifications() {
+            const modal = document.getElementById('notificationsModal');
+            modal.classList.remove('show');
+        }
+
+        // Close modal when clicking outside
+        document.addEventListener('click', function(event) {
+            const modal = document.getElementById('notificationsModal');
+            const notificationBtn = document.querySelector('.notification-btn');
+
+            // Close modal if clicked outside and not on the notification button
+            if (modal.classList.contains('show') &&
+                !modal.contains(event.target) &&
+                !notificationBtn.contains(event.target)) {
+                closeNotifications();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                const modal = document.getElementById('notificationsModal');
+                if (modal.classList.contains('show')) {
+                    closeNotifications();
+                }
+            }
+        });
+
+        // Mark notification as read
+        function markAsRead(id) {
+            const notification = notifications.find(n => n.id === id);
+            if (notification) {
+                notification.read = true;
+
+                // Debounce notification updates to prevent flickering
+                if (notificationUpdateTimeout) {
+                    clearTimeout(notificationUpdateTimeout);
+                }
+                notificationUpdateTimeout = setTimeout(() => {
+                    updateNotificationsDisplay();
+                    notificationUpdateTimeout = null;
+                }, 100);
+
+                showNotifications(); // Refresh modal
+                showToast('Notification marked as read', 'success');
+            }
+        }
+
+        // Mobile sidebar toggle
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('show');
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = 'login.html';
+        }
+
+        // Export report function
+        function exportReport() {
+            showToast('Generating analytics report...', 'info');
+            setTimeout(() => {
+                showToast('Analytics report exported successfully!', 'success');
+            }, 2000);
+        }
+
+        // Time range change handler
+        document.getElementById('timeRange').addEventListener('change', function() {
+            const timeRange = this.value;
+            updateAnalyticsData(timeRange);
+        });
+
+        // Update analytics data based on time range
+        function updateAnalyticsData(timeRange) {
+            const multipliers = {
+                '24h': 0.1,
+                '7d': 0.3,
+                '30d': 1,
+                '90d': 2.5
+            };
+
+            const multiplier = multipliers[timeRange] || 1;
+
+            // Update threat numbers
+            document.getElementById('totalThreats').textContent = Math.round(1247 * multiplier).toLocaleString();
+            document.getElementById('blockedThreats').textContent = Math.round(89 * multiplier);
+            document.getElementById('escalatedThreats').textContent = Math.round(12 * multiplier);
+
+            showToast(`Analytics updated for ${timeRange}`, 'info');
+        }
+
+        // Show toast notifications
+        function showToast(message, type) {
+            // Create toast element
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? 'rgba(0, 255, 0, 0.9)' : type === 'warning' ? 'rgba(255, 255, 0, 0.9)' : 'rgba(0, 191, 165, 0.9)'};
+                color: #000;
+                padding: 15px 20px;
+                border-radius: 8px;
+                font-weight: 600;
+                z-index: 1001;
+                animation: slideInRight 0.3s ease-out;
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            // Remove after 3 seconds
+            setTimeout(() => {
+                toast.style.animation = 'slideOutRight 0.3s ease-in';
+                setTimeout(() => document.body.removeChild(toast), 300);
+            }, 3000);
+        }
+
+        // Real-time updates
+        function startRealTimeUpdates() {
+            // Update threat count every 10 seconds
+            setInterval(() => {
+                const totalThreatsEl = document.getElementById('totalThreats');
+                if (totalThreatsEl) {
+                    const currentThreats = parseInt(totalThreatsEl.textContent.replace(/,/g, ''));
+                    const newThreats = Math.max(0, currentThreats + Math.floor(Math.random() * 10) - 5);
+                    totalThreatsEl.textContent = newThreats.toLocaleString();
+                }
+            }, 10000);
+
+            // Generate random notifications every 60 seconds
+            setInterval(() => {
+                const types = ['alert', 'update', 'info'];
+                const randomType = types[Math.floor(Math.random() * types.length)];
+                const messages = {
+                    alert: ['New threat detected', 'Suspicious activity blocked', 'Security alert triggered'],
+                    update: ['Analytics data updated', 'Report generated', 'System scan completed'],
+                    info: ['Maintenance completed', 'Backup successful', 'Policy updated']
+                };
+
+                const message = messages[randomType][Math.floor(Math.random() * messages[randomType].length)];
+                const titles = {
+                    alert: 'Security Alert',
+                    update: 'System Update',
+                    info: 'Information'
+                };
+
+                addNewNotification(randomType, titles[randomType], message);
+            }, 60000);
+        }
+
+        // Add new notification
+        function addNewNotification(type, title, message) {
+            const newNotification = {
+                id: Date.now(),
+                type: type,
+                title: title,
+                message: message,
+                time: 'Just now',
+                read: false
+            };
+            notifications.unshift(newNotification);
+
+            // Debounce notification updates to prevent flickering
+            if (notificationUpdateTimeout) {
+                clearTimeout(notificationUpdateTimeout);
+            }
+            notificationUpdateTimeout = setTimeout(() => {
+                updateNotificationsDisplay();
+                notificationUpdateTimeout = null;
+            }, 100);
+        }
+
+        // Add toast animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInRight {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOutRight {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
